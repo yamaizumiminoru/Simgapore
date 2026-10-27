@@ -1,0 +1,45 @@
+{
+  "browser": "chrome",
+  "version": "156.0.8078.47",
+  "checks": 18,
+  "passed": [
+    "anthem not fetched before user interaction",
+    "skip enters 1965 immediately",
+    "synthesised effect has a running audio graph and nonzero signal",
+    "muting stops tones and schedules none",
+    "growth scenario cue",
+    "election scenario cue",
+    "crisis scenario cue",
+    "tech scenario cue",
+    "win scenario cue",
+    "crisis scenario cue",
+    "reduced motion has zero particles",
+    "mobile prologue fits viewport",
+    "replay and effects preferences preserve exact save",
+    "live anthem decodes and advances in browser",
+    "full recording played once at normal speed",
+    "effect audio remains silent during anthem",
+    "anthem can be paused",
+    "zero JavaScript errors"
+  ],
+  "skipped": [],
+  "errors": [],
+  "anthemResponses": [
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Majulah_Singapura.ogg",
+      "status": 206
+    },
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Majulah_Singapura.ogg",
+      "status": 206
+    },
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Majulah_Singapura.ogg",
+      "status": 206
+    },
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Majulah_Singapura.ogg",
+      "status": 206
+    }
+  ]
+}

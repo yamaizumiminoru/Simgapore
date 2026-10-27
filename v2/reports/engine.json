@@ -1,6 +1,6 @@
 {
-  "tests": 32,
-  "passed": 32,
+  "tests": 37,
+  "passed": 37,
   "names": [
     "plain HTML distribution; no compressed loader",
     "61 consecutive annual benchmarks",
@@ -33,9 +33,14 @@
     "critical collapse causes early loss",
     "all-zero district priority has no public capital effect",
     "defaults do not automatically receive historical GDP",
+    "legacy cash roundoff is recovered during import",
+    "real negative and non-number cash remain invalid",
+    "repayment conserves cash and principal including tiny bonds",
+    "repeated borrow/repay/save across 100 complete campaigns",
+    "zero cash or zero debt repayment is a no-op",
     "legacy v0.6 is byte-for-byte preserved"
   ],
-  "htmlSha256": "101370172f06cbb37b6872a1dd2f504535b541ee92026d6fc853c16b91ea5f02",
+  "htmlSha256": "a0cba9e6fbfdffc4141069da9944473373229b3b26b2525dcc4d0d1f605b469c",
   "balance": {
     "guide": {
       "trials": 200,
