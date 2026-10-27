@@ -1,0 +1,42 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const htmlPath=process.argv[2]||path.join(__dirname,'../Simgapore2.html');
+const html=fs.readFileSync(htmlPath,'utf8');const scripts=[...html.matchAll(/<script>\s*([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+assert.equal(scripts.length,2);const context={module:{exports:{}},console};vm.runInNewContext(scripts[0],context,{timeout:3000});const G=context.module.exports;
+const tests=[];function test(name,fn){fn();tests.push(name);console.log('PASS',name);}function same(a,b){assert.equal(JSON.stringify(a),JSON.stringify(b));}
+function run(mode,seed=1965){let s=G.initial(seed);while(s.status==='playing'){if(mode!=='default')G.guide(s);if(mode==='closed')G.setPolicy(s,'capital',0);if(mode==='no-skills')G.setPolicy(s,'education',0);if(mode==='closed-workers'){G.setPolicy(s,'workers',0);G.setPolicy(s,'talent',0);}if(mode==='no-water')G.setPolicy(s,'water',0);G.step(s);}return s;}
+test('plain HTML distribution; no compressed loader',()=>{assert(!html.includes('DecompressionStream'));assert(html.startsWith('<!doctype html>'));assert(html.endsWith('</html>\n'));});
+test('61 consecutive annual benchmarks',()=>{assert.equal(Object.keys(G.HISTORY).length,61);for(let y=1965;y<=2025;y++)assert(G.HISTORY[y]>0);});
+test('fixed 2025 target and 619.5795 nominal ratio',()=>{assert.equal(G.HISTORY[2025],603869516998.738);assert(Math.abs(G.HISTORY[2025]/G.HISTORY[1965]-619.579515627724)<1e-9);});
+test('exact GDP at start; million/billion units',()=>{const m=G.economy(G.initial());assert(Math.abs(m.usd*1e9-G.HISTORY[1965])<1e-5);assert(Math.abs(m.pop-1.8869)<1e-10);});
+test('exclusive v2 save key',()=>{assert.equal(G.KEY,'simgapore-v2-save');assert(!G.KEY.includes('v01'));});
+test('invalid policies rejected without mutation',()=>{const s=G.initial(),b=G.serialize(s);assert(!G.setPolicy(s,'tax',Infinity));assert(!G.setPolicy(s,'unknown',2));assert(!G.setPolicy(s,'workers',1.5));assert(!G.setPolicy(s,'education',.3));assert.equal(G.serialize(s),b);});
+test('district priority validation',()=>{const s=G.initial();assert(!G.priority(s,'bad',2));assert(!G.priority(s,'jurong',4));assert(G.priority(s,'jurong',3));assert.equal(s.districts[0].priority,3);});
+test('guide changes settings only, never money/capacity/people',()=>{const s=G.initial(),before=G.copy(s);G.guide(s);delete s.policy;delete s.districts;delete s.log;delete before.policy;delete before.districts;delete before.log;same(s,before);});
+test('water shortage reduces output immediately',()=>{const s=G.initial(),a=G.economy(s);s.waterNatural=0;s.waterImport=.08;const b=G.economy(s);assert(b.usd<a.usd*.5);assert(b.waterRatio<1);});
+test('housing shortage reduces output immediately',()=>{const s=G.initial(),a=G.economy(s);s.homes*=.5;const b=G.economy(s);assert(b.usd<a.usd*.7);});
+test('energy price shock raises cost and lowers output',()=>{const s=G.initial(),a=G.economy(s);s.energyShock=3;const b=G.economy(s);assert(b.costEnergy>a.costEnergy);assert(b.usd<a.usd);});
+test('efficiency reduces imported-energy burden',()=>{const s=G.initial();s.energyShock=3;const a=G.economy(s);s.efficiency=1;assert(G.economy(s).costEnergy<a.costEnergy);});
+test('foreign ownership is not subtracted from GDP',()=>{const s=G.initial(),a=G.economy(s);s.policy.capital=2;const b=G.economy(s);assert.equal(a.usd,b.usd);assert(b.foreignShare>a.foreignShare);});
+test('GDP uses annual-average USD rate, not spot',()=>{const s=G.initial(),a=G.economy(s);s.averageFx/=2;assert.equal(G.economy(s).usd,a.usd*2);});
+test('borrowing adds cash and debt, not GDP',()=>{const s=G.initial(),a=G.economy(s);assert(G.borrow(s));const b=G.economy(s);assert.equal(a.usd,b.usd);assert(b.grossDebt>a.grossDebt);assert(Math.abs(b.netDebt-a.netDebt)<1e-9);});
+test('large unbacked debt raises new yield',()=>{const s=G.initial(),a=G.economy(s);s.bonds.push({amount:a.nominal*2,coupon:.05,maturity:1980});assert(G.economy(s).newYield>a.newYield+.06);});
+test('old fixed coupon does not reset with new market rate',()=>{const s=G.initial();G.borrow(s);const r=s.bonds[0].coupon;s.trust=15;G.step(s);assert.equal(s.bonds[0].coupon,r);});
+test('repayment spends cash and reduces debt',()=>{const s=G.initial();G.borrow(s);const a=G.economy(s);assert(G.repay(s));assert(G.economy(s).grossDebt<a.grossDebt);});
+test('NEWater requires date and skill',()=>{const s=G.initial();s.skill=90;assert(!G.newaterReady(s));s.year=1998;s.skill=57;assert(!G.newaterReady(s));s.skill=58;assert(G.newaterReady(s));});
+test('birth support changes births, not next-year adult labour',()=>{const a=G.initial(),b=G.initial();a.policy.family=0;b.policy.family=4;G.step(a);G.step(b);assert(b.births>a.births);assert.equal(G.economy(a).labour,G.economy(b).labour);});
+test('forecast is exact and does not consume original RNG',()=>{const s=G.initial(),raw=G.serialize(s),n=G.forecast(s);assert.equal(G.serialize(s),raw);G.step(s);same(s,n);});
+test('reference path completes all 60 transitions and wins',()=>{const s=run('guide');assert.equal(s.year,2025);assert.equal(s.history.length,61);assert.equal(s.status,'won');assert(G.economy(s).usd>G.HISTORY[2025]/1e9);});
+test('no actions allowed after campaign end',()=>{const s=run('guide'),b=G.serialize(s);assert(!G.step(s));assert(!G.guide(s));assert(!G.borrow(s));assert(!G.repay(s));assert(!G.priority(s,'jurong',0));assert(!G.setPolicy(s,'tax',12));assert.equal(G.serialize(s),b);});
+test('same seed and choices are deterministic',()=>same(run('guide',17),run('guide',17)));
+test('save roundtrip throughout campaign',()=>{let s=G.initial();while(s.status==='playing'){same(s,G.parse(G.serialize(s)));G.guide(s);G.step(s);}same(s,G.parse(G.serialize(s)));});
+test('reject v0.6 and malformed saves',()=>{for(const text of ['{}','[]','null','bad',JSON.stringify({format:'Simgapore2',version:1,state:{}})])assert.throws(()=>G.parse(text));});
+test('reject out-of-range save fields',()=>{for(const [field,v] of [['year',2050],['fx',0],['tfp',-1],['support',101],['rng',-1]]){const s=G.initial();s[field]=v;assert.throws(()=>G.parse(G.serialize(s)));}});
+test('reject injected election payload',()=>{const s=G.initial();s.lastElection={year:'<img src=x onerror=alert(1)>',votes:20,seatShare:.6};assert.throws(()=>G.parse(G.serialize(s)));});
+test('critical collapse causes early loss',()=>{const s=G.initial();s.support=18;s.homes=.2;s.waterNatural=0;s.waterImport=.01;G.step(s);assert.equal(s.status,'lost');assert(s.year<2025);});
+test('all-zero district priority has no public capital effect',()=>{const a=G.initial(),b=G.initial();a.districts.forEach(x=>x.priority=0);b.districts.forEach(x=>x.priority=0);a.policy.investment=0;b.policy.investment=10;G.step(a);G.step(b);assert.equal(a.capitalStock,b.capitalStock);});
+test('defaults do not automatically receive historical GDP',()=>{const s=run('default');assert(G.economy(s).ratioFinal<1);});
+const legacy=path.join(path.dirname(htmlPath),'Simgapore.html');if(fs.existsSync(legacy))test('legacy v0.6 is byte-for-byte preserved',()=>assert.equal(crypto.createHash('sha256').update(fs.readFileSync(legacy)).digest('hex'),'00e137fa0ea82531b257ade149859805b3842121accd4861e466a6f1aa4f653f'));
+const result={tests:tests.length,passed:tests.length,names:tests,htmlSha256:crypto.createHash('sha256').update(html).digest('hex')};
+if(process.env.BALANCE==='1'){result.balance={};for(const mode of ['guide','default','closed','no-skills','closed-workers','no-water']){let wins=0,early=0,vals=[];for(let seed=2001;seed<=2200;seed++){const s=run(mode,seed);wins+=s.status==='won';early+=s.year<2025;vals.push(G.economy(s).usd);}vals.sort((a,b)=>a-b);result.balance[mode]={trials:200,seeds:[2001,2200],wins,earlyLosses:early,minUsdBillions:vals[0],medianUsdBillions:vals[100],maxUsdBillions:vals.at(-1)};}console.log(JSON.stringify(result.balance,null,2));}
+const out=process.env.TEST_REPORT;if(out)fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n');console.log(`Engine checks passed: ${tests.length}`);

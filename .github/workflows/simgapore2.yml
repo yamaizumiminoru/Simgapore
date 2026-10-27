@@ -1,0 +1,56 @@
+name: Simgapore 2.0 verify and publish
+on:
+  push:
+    branches: [main]
+    paths: ['v2/src/**', 'v2/tests/**', 'v2/build.py', 'v2/verify.py', '.github/workflows/simgapore2.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: simgapore2-verification
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce and verify the plain HTML
+        run: |
+          mkdir -p v2/reports
+          python v2/build.py Simgapore2.html
+          python v2/verify.py Simgapore2.html
+      - name: Engine, legacy preservation, and held-out balance tests
+        run: BALANCE=1 TEST_REPORT=v2/reports/engine.json node v2/tests/engine.cjs Simgapore2.html
+      - name: Install branded browsers
+        run: |
+          pip install playwright==1.57.0
+          python -m playwright install --with-deps chrome msedge
+      - name: Chrome and Edge real file, persistence, download, and full campaign
+        run: python v2/tests/browser.py Simgapore2.html --channels chrome,msedge --out v2/reports
+      - name: Preserve reports and distribution as run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simgapore2-distribution-and-tests
+          path: |
+            Simgapore2.html
+            v2/reports/
+          retention-days: 30
+      - name: Publish only verified distribution and concise reports
+        run: |
+          python v2/verify.py Simgapore2.html
+          git diff --exit-code -- Simgapore.html README.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Simgapore2.html v2/reports/engine.json v2/reports/chrome-ui.json v2/reports/msedge-ui.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified Simgapore 2.0 distribution and browser reports'
+            git push origin HEAD:main
+          fi
