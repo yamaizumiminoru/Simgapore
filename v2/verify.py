@@ -7,17 +7,17 @@ ROOT = Path(__file__).resolve().parent
 html = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / 'Simgapore2.html'
 expected = {
     'data.js': 'e2dca57dd12660c698bcc9b985e5e3edf2cf1378',
-    'engine.js': '19de5dc5714e357dfc2a978fb0c9be07076ff552',
-    'ui.js': '88922b701d8474d582a605e97f196489ff7dc8ea',
+    'engine.js': '93dc7d7b9c254b449b36ffb1c60f409c6efac129',
+    'ui.js': 'f5e8eec56a46321e026a29d4ffad439e5370f12b',
     'style.css': 'acb092749041321bfb99f62494ae47cba788cc5a',
-    'body.html': 'ba29f9beff4bb59cc59aa5e27b772f3ee7000183',
+    'body.html': '6e5c5ddf1a1932e8de97f20926adb08a563de684',
 }
 for name, target in expected.items():
     raw = (ROOT / 'src' / name).read_bytes()
     actual = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
     if actual != target:
         raise SystemExit('Source mismatch: ' + name + ' ' + actual)
-if hashlib.sha256(html.read_bytes()).hexdigest() != 'df493dcd3f21424975e0e631fd1807aa3caeb53164265551dcc579296d756495':
+if hashlib.sha256(html.read_bytes()).hexdigest() != '101370172f06cbb37b6872a1dd2f504535b541ee92026d6fc853c16b91ea5f02':
     raise SystemExit('Distribution does not match the tested build')
 legacy = html.parent / 'Simgapore.html'
 if not legacy.is_file():

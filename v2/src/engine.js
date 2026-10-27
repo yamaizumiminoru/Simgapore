@@ -1,4 +1,4 @@
-/* Simgapore 2.0. Game coefficients are invented, not economic estimates. */
+/* Simgapore 2.0. Coefficients define the gameplay model. */
 const Sim = (() => {
 'use strict';
 const VERSION=2, KEY='simgapore-v2-save', START=1965, END=2025;
@@ -8,7 +8,7 @@ const copy=x=>JSON.parse(JSON.stringify(x));
 const sum=x=>x.reduce((a,b)=>a+b,0);
 const DISTRICTS=[
  {id:'jurong',name:'ジュロン',sector:'industry',title:'工業・輸出の入口',desc:'港と結びつく製造業。初期から設備投資の受け皿になるが、水と燃料を多く使う。',w:1.30,e:1.35,k:1.24,year:1965},
- {id:'port',name:'南部港湾',sector:'logistics',title:'世界市場への接続',desc:'港湾と物流。工場だけ増やしても、ここが弱いと輸出の生産性が伸びない。',w:.70,e:1.05,k:1.05,year:1965},
+ {id:'port',name:'南部港湾',sector:'logistics',title:'世界市場への接続',desc:'港湾と物流を整え、工業地区の製品を世界市場へ届ける。製造業とともに育てると、輸出の基盤が強くなる。',w:.70,e:1.05,k:1.05,year:1965},
  {id:'central',name:'都心',sector:'finance',title:'金融・事業サービス',desc:'高い教育水準と行政への信頼が必要。土地を集約利用するが、住居費の圧力が高まる。',w:.55,e:.80,k:1.35,year:1975},
  {id:'changi',name:'チャンギ',sector:'logistics',title:'空の玄関口',desc:'航空物流・ビジネス交流。1981年以降に強みが増し、サービス業と専門人材をつなぐ。',w:.65,e:1.15,k:1.10,year:1981},
  {id:'north',name:'北部',sector:'housing',title:'住まいと通勤圏',desc:'住宅供給と近隣サービス。ここへの配分を増やすと、人口流入に住宅が追いつきやすい。',w:.65,e:.65,k:.80,year:1965},
@@ -17,18 +17,18 @@ const DISTRICTS=[
  {id:'coast',name:'東海岸',sector:'services',title:'観光・生活サービス',desc:'水と燃料への依存は小さめ。雇用の裾野を広げるが、感染症や国際移動の停滞に弱い。',w:.75,e:.70,k:1.00,year:1965}
 ];
 const POLICY={
- tax:{label:'税収の水準',help:'国全体から得る税収のGDP比。法人税率そのものではない。高くすると財源は増えるが民間投資は減る。',min:12,max:26,step:1,unit:'％'},
+ tax:{label:'税収の水準',help:'税収総額がGDPに占める割合。高くすると財源が増え、民間投資には負担がかかる。',min:12,max:26,step:1,unit:'％'},
  investment:{label:'地区への開発投資',help:'GDPの何％を、下で選んだ地区の優先度に配分するか。民間設備投資を呼び込む基盤にもなる。',min:0,max:10,step:.5,unit:'％'},
  housing:{label:'住宅供給予算',help:'住める人数を増やす。住宅が人口に追いつかないと、その年の生産と支持が下がる。',min:0,max:5,step:.5,unit:'％'},
  water:{label:'水の設備予算',help:'貯水・輸入処理設備を増強する。技術解禁後は、再生水と海水淡水化に重点が移る。',min:0,max:4,step:.5,unit:'％'},
- energy:{label:'省エネ・燃料分散予算',help:'水と違い、燃料は原則として購入できる。課題は輸入価格と供給の集中。効率化と調達先の分散で値上がりへの耐性を育てる。',min:0,max:4,step:.5,unit:'％'},
+ energy:{label:'省エネ・燃料分散予算',help:'輸入燃料の価格上昇に備える。省エネで使用量を抑え、調達先の分散で供給の集中によるリスクを軽減する。',min:0,max:4,step:.5,unit:'％'},
  education:{label:'教育・技術予算',help:'人材を育て、高度産業の実力と海外技術の吸収力を高める。効くまでに時間がかかる。',min:0,max:6,step:.5,unit:'％'},
  family:{label:'子育て・生活支援',help:'出生と生活への信頼を支える。出生数はすぐ変わるが、生まれた子が働くのは18年以上後。',min:0,max:4,step:.5,unit:'％'},
- capital:{label:'外国資本',help:'誘致は国内設備と技術を増やす。外国企業が国内で生む付加価値もGDPに含める。利益の海外送金はGDPからは引かない。',values:['慎重','選別して誘致','積極誘致']},
+ capital:{label:'外国資本',help:'外国企業の投資を招き、国内の設備と技術を育てる。国内で生まれる付加価値がGDPに加わる。',values:['慎重','選別して誘致','積極誘致']},
  workers:{label:'外国人の働き手',help:'建設・製造・生活サービスの労働力。人手不足を緩める一方、住宅と水の需要が増える。',values:['抑制','段階的に受入','積極受入']},
  talent:{label:'外国人専門人材',help:'技術者・研究者などを招く。教育と産業の受け皿があるほど技術移転が進む。',values:['抑制','選別して受入','積極受入']},
- fx:{label:'対米ドルの為替方針',help:'相場を直接指定するボタンではない。生産性と信用から決まる基準相場の周辺へ誘導する。通貨高には輸出への負担と介入費用もある。',values:['輸出重視','安定重視','通貨高重視']},
- governance:{label:'意思決定と異論の扱い',help:'集権化は投資の実行を速めるが、誤判断時の損失と修正の遅れが大きい。異論を生かす運営は実行が慎重になる。効果はゲーム上の仮定。',values:['公開検証を重視','行政主導・検証あり','強い権限集中']}
+ fx:{label:'対米ドルの為替方針',help:'生産性と信用から決まる基準相場をもとに、通貨を強める方向・安定させる方向・輸出を支える方向を選ぶ。通貨高には輸出への負担と介入費用が伴う。',values:['輸出重視','安定重視','通貨高重視']},
+ governance:{label:'意思決定と異論の扱い',help:'権限集中は投資の実行を速める一方、誤判断時の損失と修正の遅れを大きくする。公開検証を重視すると、実行は慎重になり、判断ミスによる損失を抑えやすくなる。',values:['公開検証を重視','行政主導・検証あり','強い権限集中']}
 };
 const ELECTIONS=[1968,1972,1976,1980,1984,1988,1991,1997,2001,2006,2011,2015,2020,2025];
 const EVENTS={
@@ -42,7 +42,7 @@ function initial(seed=1965){
  const ages=Array.from({length:86},(_,i)=>i<15?.40/15:i<65?.57/50:.03/21).map(v=>v*1.8369);
  const s={version:VERSION,year:START,rng:seed>>>0,seed:seed>>>0,ages,foreignWorkers:.04,foreignTalent:.01,capitalStock:K0,tfp:1,skill:20,price:1,fx:3.06,averageFx:3.06,fundFx:3.06,homes:1.98,waterNatural:.18,waterImport:.16,recycle:0,desal:0,efficiency:0,diversification:.12,trust:70,support:67,poorYears:0,cash:B*.28,reserves:B*.12/3.06,bonds:[],status:'playing',reason:'',badPolicy:0,exportShock:0,energyShock:1,drought:1,births:0,tfr:4.7,lastElection:null,flags:{},
  policy:{tax:18,investment:4,housing:1.5,water:.5,energy:.5,education:2,family:.5,capital:1,workers:1,talent:1,fx:1,governance:1},
- districts:DISTRICTS.map((d,i)=>({id:d.id,priority:[2,2,1,0,1,1,0,1][i],level:1})),history:[],log:[{year:1965,text:'独立から出発。工場だけでなく、水・住まい・人材の受け皿を整える。'}],last:null};
+ districts:DISTRICTS.map((d,i)=>({id:d.id,priority:[2,2,1,0,1,1,0,1][i],level:1})),history:[],log:[{year:1965,text:'独立から出発。工業と港湾を育て、水・住まい・人材の基盤を整える。'}],last:null};
  if(!L0)L0=labour(s);
  s.history.push(record(s));return s;
 }
@@ -106,14 +106,14 @@ function guide(s){
  Object.assign(p,{tax:21,investment:y<1990?6:5,housing:m.housingRatio<1.13?3:.5,water:m.waterRatio<1.22?2:1,energy:y<1972?1:1.5,education:4,family:y<1985?1:2,capital:2,workers:y<1990?1:2,talent:2,fx:y<1981?1:2,governance:1});
  const weights=y<1980?[3,3,0,0,2,2,0,1]:y<2000?[2,2,2,2,2,2,3,1]:[2,2,3,2,2,2,3,1];
  s.districts.forEach((d,i)=>d.priority=weights[i]);
- log(s,'史実ヒントの参考配分を設定。政策と地区優先度のみ変更。資金・能力への特別加算はありません。');return true;
+ log(s,'史実ヒントの参考案を、国家政策と地区の投資優先度に反映しました。');return true;
 }
 function borrow(s,fraction=.05){
  if(s.status!=='playing'||![.05,.10].includes(fraction))return false;
  const m=economy(s),amount=m.nominal*fraction;
  if(m.grossDebt/m.nominal>2.5){log(s,'市場から追加資金を調達できません。');return false;}
  s.bonds.push({amount,coupon:m.newYield+fraction*.025,maturity:s.year+10});s.cash+=amount;
- log(s,`開発債を発行。10年固定利率 ${((m.newYield+fraction*.025)*100).toFixed(2)}％。発行自体ではGDPは増えません。`);return true;
+ log(s,`開発債を発行。10年固定利率 ${((m.newYield+fraction*.025)*100).toFixed(2)}％。調達資金を政府の手元資金に加えました。`);return true;
 }
 function repay(s){
  if(s.status!=='playing')return false;
@@ -162,7 +162,7 @@ function step(s){
  s.diversification=clamp(s.diversification+p.energy*.009,0,.90);
  s.year++;
  const ev=EVENTS[s.year];s.exportShock=ev?ev[1]:0;s.energyShock=ev?1+(ev[2]-1)*(1-s.diversification*.60):1;s.drought=ev?ev[3]:1;
- if(ev)log(s,`${ev[0]}。発生年は史実、ゲーム内の影響量は創作です。`);
+ if(ev)log(s,`${ev[0]}。経済環境の変化を今年の決算に反映します。`);
  const noise=(rand(s)-.5)*.018*[.7,1,1.7][p.governance];s.exportShock+=noise;
  s.badPolicy*=p.governance===2?.65:.25;
  const policyOutcome=rand(s);
@@ -200,20 +200,20 @@ function step(s){
   const votes=clamp(s.support+(rand(s)-.5)*4,1,99);
   const seatShare=clamp(.5+(votes-50)*.018+[0,.08,.12][p.governance],0,1);
   s.lastElection={year:s.year,votes,seatShare};
-  log(s,`総選挙：与党得票率 ${votes.toFixed(1)}％、議席率 ${(seatShare*100).toFixed(1)}％（架空の集計モデル）。`);
+  log(s,`総選挙：与党得票率 ${votes.toFixed(1)}％、議席率 ${(seatShare*100).toFixed(1)}％。`);
   if(seatShare<.5){s.status='lost';s.reason='総選挙で議会の過半数を失いました。';}
  }
  if(s.support<18||s.poorYears>=3){s.status='lost';s.reason='生活と成長の不振が続き、党内の信任を失いました。';}
  const after=economy(s);
  if(after.grossDebt/Math.max(after.nominal,.01)>2.8&&after.interest/Math.max(after.revenue,.01)>.4){s.status='lost';s.reason='借換えと利払いが膨らみ、政府の資金調達が行き詰まりました。';}
- if(s.year===1990)log(s,'世代交代。あなたは創設者個人ではなく、引き継がれる政権の経営方針を操作し続けます。');
+ if(s.year===1990)log(s,'世代交代。次の政権へ引き継ぎ、引き続き国の経営方針を決めていきます。');
  if(s.year===END&&s.status==='playing'){s.status=after.usd>HISTORY[END]/1e9?'won':'lost';s.reason=s.status==='won'?'2025年の名目ドル建てGDPで、史実を上回りました。':'2025年の名目ドル建てGDPが、史実に届きませんでした。';}
  s.history.push(record(s));log(s,`${s.year}年の決算。GDPは前年から ${((after.usd/before.usd-1)*100).toFixed(1)}％。`);return true;
 }
 function serialize(s){return JSON.stringify({format:'Simgapore2',version:VERSION,state:s},null,2);}
 function parse(text){
  if(typeof text!=='string'||text.length>2e6)throw Error('セーブファイルが大きすぎます。');
- const w=JSON.parse(text);if(w.format!=='Simgapore2'||w.version!==VERSION)throw Error('これは2.0用のセーブではありません。旧v0.6のデータは変更しません。');
+ const w=JSON.parse(text);if(w.format!=='Simgapore2'||w.version!==VERSION)throw Error('Simgapore 2.0で書き出したセーブファイルを選んでください。');
  const s=w.state;if(!s||s.version!==2||!Number.isInteger(s.year)||s.year<START||s.year>END||!['playing','won','lost'].includes(s.status))throw Error('セーブの形式が正しくありません。');
  const finite=(v,a,b)=>typeof v==='number'&&Number.isFinite(v)&&v>=a&&v<=b;
  if(!Array.isArray(s.ages)||s.ages.length!==86||s.ages.some(x=>!finite(x,0,100)))throw Error('人口データが不正です。');
