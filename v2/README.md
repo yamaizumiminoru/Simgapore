@@ -89,3 +89,16 @@ python v2/tests/browser.py Simgapore2.html --channels chrome,msedge --out v2/rep
 - 総選挙年： https://www.eld.gov.sg/elections_past_parliamentary.html
 
 後継開発への参加は [募集Issue](https://github.com/yamaizumiminoru/Simgapore/issues/1) へ。ライセンスの取り決めも同Issueで相談を受け付けています。
+
+
+## 2.0.1 — 保存修復と歴史・視聴覚演出
+
+繰上返済は、返済予算の残額から手元資金を確定します。旧2.0で残高がごく小さな負数（絶対値1e-12以下、単位は10億シンガポールドル）になったセーブは、読み込み時に残高を0へ戻します。セーブ形式と `simgapore-v2-save` キーを継続使用します。
+
+旧v0.6の歴史プロローグをもとに、地理、植民地港湾都市、自治、合邦、対立、秘密交渉、分離独立、人口・国土、2025年への目標を11場面で案内します。画面上部の「独立までの物語」から読み返せます。
+
+政策・地区投資・借入返済・保存に効果音と画面演出が付きます。決算には成長、総選挙、危機、高度再生水の導入、最終結果の演出があります。「音・演出」で消音、音量、画面の動きを設定できます。設定は `simgapore-v2-presentation` に保存します。
+
+開始曲はシンガポール国歌 **Majulah Singapura**（作曲：Zubir Said、演奏：米海軍軍楽隊）。[Wikimedia Commonsの音源](https://commons.wikimedia.org/wiki/File:Majulah_Singapura.ogg)をオンラインで一曲再生します。音源の再生にはインターネット接続を使います。ゲーム本体と生成効果音はオフラインで動きます。録音は外部音源として扱い、ソース配布には含めません。国歌の利用案内は[シンガポール国家遺産局](https://www.nhb.gov.sg/what-we-do/our-work/community-engagement/education/resources/national-symbols/national-anthem)を参照してください。
+
+追加テスト：返済と保存の連続実行、旧セーブの丸め誤差復旧、ダークモード時の文字色、歴史11場面、演出種別、Web Audioの実信号、消音、動きの軽減、オンライン国歌再生。外部音源へ接続できない検証環境では、その結果を `skipped` に明記します。

@@ -5,6 +5,8 @@ const VERSION=2, KEY='simgapore-v2-save', START=1965, END=2025;
 const B=HISTORY[1965]/1e9*3.06, K0=B*2.5;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const copy=x=>JSON.parse(JSON.stringify(x));
+// Cash is in billions of SGD: this tolerance is one tenth of a cent.
+const CASH_ROUNDOFF=1e-12;
 const sum=x=>x.reduce((a,b)=>a+b,0);
 const DISTRICTS=[
  {id:'jurong',name:'ジュロン',sector:'industry',title:'工業・輸出の入口',desc:'港と結びつく製造業。初期から設備投資の受け皿になるが、水と燃料を多く使う。',w:1.30,e:1.35,k:1.24,year:1965},
@@ -117,9 +119,19 @@ function borrow(s,fraction=.05){
 }
 function repay(s){
  if(s.status!=='playing')return false;
- const m=economy(s);let available=Math.min(s.cash,m.nominal*.05),used=0;
- for(const b of s.bonds){const v=Math.min(b.amount,available);b.amount-=v;available-=v;used+=v;}
- s.bonds=s.bonds.filter(b=>b.amount>1e-9);s.cash-=used;if(used>0)log(s,'国債の一部を繰上返済。利払い負担を軽減。');return used>0;
+ const m=economy(s),budget=Math.max(0,Math.min(s.cash,m.nominal*.05));
+ let available=budget;
+ for(const b of s.bonds){
+  if(available<=0)break;
+  const payment=Math.min(b.amount,available);
+  b.amount=Math.max(0,b.amount-payment);
+  available=Math.max(0,available-payment);
+ }
+ // Use the budget's remainder, not a separately accumulated sum of payments.
+ const used=budget-available;
+ s.bonds=s.bonds.filter(b=>b.amount>0);
+ if(used>0){s.cash=Math.max(0,s.cash-budget)+available;log(s,'国債の一部を繰上返済。利払い負担を軽減。');}
+ return used>0;
 }
 function step(s){
  if(s.status!=='playing'||s.year>=END)return false;
@@ -216,6 +228,8 @@ function parse(text){
  const w=JSON.parse(text);if(w.format!=='Simgapore2'||w.version!==VERSION)throw Error('Simgapore 2.0で書き出したセーブファイルを選んでください。');
  const s=w.state;if(!s||s.version!==2||!Number.isInteger(s.year)||s.year<START||s.year>END||!['playing','won','lost'].includes(s.status))throw Error('セーブの形式が正しくありません。');
  const finite=(v,a,b)=>typeof v==='number'&&Number.isFinite(v)&&v>=a&&v<=b;
+ // Recover saves written before the repayment-roundoff fix. Real negative balances stay invalid.
+ if(finite(s.cash,-CASH_ROUNDOFF,0))s.cash=0;
  if(!Array.isArray(s.ages)||s.ages.length!==86||s.ages.some(x=>!finite(x,0,100)))throw Error('人口データが不正です。');
  for(const k of ['capitalStock','tfp','price','fx','averageFx','fundFx','homes'])if(!finite(s[k],.00001,1e8))throw Error(k+'の値が不正です。');
  for(const k of ['foreignWorkers','foreignTalent','waterNatural','waterImport','recycle','desal','efficiency','diversification','cash','reserves','births','tfr','badPolicy','energyShock','drought'])if(!finite(s[k],0,1e8))throw Error(k+'の値が不正です。');
