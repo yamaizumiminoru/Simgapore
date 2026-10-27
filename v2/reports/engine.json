@@ -35,7 +35,7 @@
     "defaults do not automatically receive historical GDP",
     "legacy v0.6 is byte-for-byte preserved"
   ],
-  "htmlSha256": "df493dcd3f21424975e0e631fd1807aa3caeb53164265551dcc579296d756495",
+  "htmlSha256": "101370172f06cbb37b6872a1dd2f504535b541ee92026d6fc853c16b91ea5f02",
   "balance": {
     "guide": {
       "trials": 200,
