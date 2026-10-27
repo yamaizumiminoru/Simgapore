@@ -1,0 +1,113 @@
+{
+  "tests": 32,
+  "passed": 32,
+  "names": [
+    "plain HTML distribution; no compressed loader",
+    "61 consecutive annual benchmarks",
+    "fixed 2025 target and 619.5795 nominal ratio",
+    "exact GDP at start; million/billion units",
+    "exclusive v2 save key",
+    "invalid policies rejected without mutation",
+    "district priority validation",
+    "guide changes settings only, never money/capacity/people",
+    "water shortage reduces output immediately",
+    "housing shortage reduces output immediately",
+    "energy price shock raises cost and lowers output",
+    "efficiency reduces imported-energy burden",
+    "foreign ownership is not subtracted from GDP",
+    "GDP uses annual-average USD rate, not spot",
+    "borrowing adds cash and debt, not GDP",
+    "large unbacked debt raises new yield",
+    "old fixed coupon does not reset with new market rate",
+    "repayment spends cash and reduces debt",
+    "NEWater requires date and skill",
+    "birth support changes births, not next-year adult labour",
+    "forecast is exact and does not consume original RNG",
+    "reference path completes all 60 transitions and wins",
+    "no actions allowed after campaign end",
+    "same seed and choices are deterministic",
+    "save roundtrip throughout campaign",
+    "reject v0.6 and malformed saves",
+    "reject out-of-range save fields",
+    "reject injected election payload",
+    "critical collapse causes early loss",
+    "all-zero district priority has no public capital effect",
+    "defaults do not automatically receive historical GDP",
+    "legacy v0.6 is byte-for-byte preserved"
+  ],
+  "htmlSha256": "df493dcd3f21424975e0e631fd1807aa3caeb53164265551dcc579296d756495",
+  "balance": {
+    "guide": {
+      "trials": 200,
+      "seeds": [
+        2001,
+        2200
+      ],
+      "wins": 200,
+      "earlyLosses": 0,
+      "minUsdBillions": 668.6097890038026,
+      "medianUsdBillions": 711.2091685523096,
+      "maxUsdBillions": 724.3749071515773
+    },
+    "default": {
+      "trials": 200,
+      "seeds": [
+        2001,
+        2200
+      ],
+      "wins": 0,
+      "earlyLosses": 0,
+      "minUsdBillions": 132.1687882737104,
+      "medianUsdBillions": 140.78119495359343,
+      "maxUsdBillions": 143.30004469963887
+    },
+    "closed": {
+      "trials": 200,
+      "seeds": [
+        2001,
+        2200
+      ],
+      "wins": 0,
+      "earlyLosses": 0,
+      "minUsdBillions": 279.7550990695279,
+      "medianUsdBillions": 297.69234471816594,
+      "maxUsdBillions": 303.2457892447413
+    },
+    "no-skills": {
+      "trials": 200,
+      "seeds": [
+        2001,
+        2200
+      ],
+      "wins": 0,
+      "earlyLosses": 0,
+      "minUsdBillions": 201.24584608015164,
+      "medianUsdBillions": 214.3425870456704,
+      "maxUsdBillions": 218.39308855545895
+    },
+    "closed-workers": {
+      "trials": 200,
+      "seeds": [
+        2001,
+        2200
+      ],
+      "wins": 0,
+      "earlyLosses": 0,
+      "minUsdBillions": 258.2200149093954,
+      "medianUsdBillions": 274.8570777181507,
+      "maxUsdBillions": 279.9990657819106
+    },
+    "no-water": {
+      "trials": 200,
+      "seeds": [
+        2001,
+        2200
+      ],
+      "wins": 0,
+      "earlyLosses": 200,
+      "minUsdBillions": 6.057463210725783,
+      "medianUsdBillions": 8.845497918024039,
+      "maxUsdBillions": 8.968406406972525
+    }
+  }
+}
